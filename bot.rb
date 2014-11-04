@@ -1,10 +1,13 @@
+#encoding: UTF-8
+
 require "rubygems"
 require "tweetstream"
 require "em-http-request"
+require "httparty"
 require "simple_oauth"
 require "json"
-# require "uri"
- 
+require "uri"
+
 # require the file with the API keys
 require "./oauth-keys"
 
@@ -19,20 +22,39 @@ TweetStream.configure do |config|
  config.auth_method = :oauth
 end
 
+COTATIONS = {}
+BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/all" #bitcoinaverage.com API endpoint
+
+def final_amount(amount, currency)
+  COTATIONS[:data][currency]["averages"]["last"] * amount
+end
+
+def update_cotations
+  return if cotations_updated?
+  
+  puts "Will fetch new cotations"
+  fetch_cotations
+end
+
+def cotations_updated?
+  COTATIONS[:timestamp] && (Time.now - COTATIONS[:timestamp]) < 10
+end
+
+def fetch_cotations
+  response = HTTParty.get(BIT_AVERAGE_URL)
+  COTATIONS[:data] = JSON.parse response.body
+  COTATIONS[:timestamp] = Time.now
+end
+
 # variables 
-twurl = "https://api.twitter.com/1.1/statuses/update.json" #twitter API endpoint
+#twurl = URI.parse("https://api.twitter.com/1.1/statuses/update.json")
 # authorization = SimpleOAuth::Header.new(:post, twurl.to_s, tweet, OAUTH)
-bit_average_url = "https://api.bitcoinaverage.com/ticker/" #bitcoinaverage.com API endpoint
 bit_regex = /\d+(\.|,)?(\d+)?/ #any amount
 currency_regex = /#[A-Z]{3}/ # "#" followed by 3 capital letters
 bitcoin_cotation = 0
 has_cotation = false
 cotation_timestamp = ""
 
-# bitcoin average request definition
-#def get_value(amount)
-#    get_average = EventMachine::HttpRequest.new(bit_average_url.to_s)
-    
 # user stream connection
 @client  = TweetStream::Client.new
 
@@ -53,28 +75,39 @@ puts "[STARTING] bot..."
     # check if stream is not a retweet and is valid
     if !retweet && reply_to_me && contains_amount && contains_currency
         puts "[PROCESSING] #{status.text}"
-        bit_amount = status.text[bit_regex] # grabs the amount on the tweet
+        bit_amount = status.text[bit_regex].to_f # grabs the amount on the tweet
         currency = status.text[currency_regex][1..-1] # takes the "#" out
-        p bit_amount
-        p currency
+        #p bit_amount
+        #p currency
 
-        #if has_cotation == false || (cotation_timestamp - Time.now) > 10 # if there was elapsed
-        EventMachine.run {
-            conversion_url = bit_average_url + currency + "/"
-            puts conversion_url
-            get_cotation = EventMachine::HttpRequest.new(conversion_url).get
-
-            get_cotation.errback { puts "[ERROR] errback" }
-            get_cotation.callback {
-                bitcoin_cotation = get_cotation.response
-                json = JSON.parse bitcoin_cotation
-                
-                puts json["24h_avg"]
-
-                EventMachine.stop
-            }   
-        }
-    else
-        puts "Nao deveria passar por aqui"
+        update_cotations
+        this_amount = final_amount(bit_amount, currency)
+        reply = "#{bit_amount} em #{currency} é #{this_amount}"
+        puts reply
+        
+        
+#        #if has_cotation == false || (cotation_timestamp - Time.now) > 10 # if there was elapsed
+#        EventMachine.run {
+#            conversion_url = bit_average_url + currency + "/"
+#            puts conversion_url
+#            # gets the bitcoin cotation at bitcoinaverage.com API
+#            get_cotation = EventMachine::HttpRequest.new(conversion_url).get
+# 
+#            get_cotation.errback { puts "[ERROR] errback" }
+#            get_cotation.callback {
+#                json = JSON.parse get_cotation.response
+#                bitcoin_cotation = json["last"]
+#                has_cotation = true
+#                cotation_timestamp = json["timestamp"]
+#                final_amount = bitcoin_cotation * bit_amount
+# 
+#                http.
+#                
+#                EventMachine.stop
+#            }
+#        }
+#        puts "estou fora da EventMachine"
+#    else
+#        puts "Nao deveria passar por aqui"
     end
 end

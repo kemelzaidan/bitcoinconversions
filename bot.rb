@@ -46,9 +46,8 @@ def fetch_cotations
   COTATIONS[:timestamp] = Time.now
 end
 
-# variables 
-#twurl = URI.parse("https://api.twitter.com/1.1/statuses/update.json")
-# authorization = SimpleOAuth::Header.new(:post, twurl.to_s, tweet, OAUTH)
+# variables
+twurl = URI.parse("https://api.twitter.com/1.1/statuses/update.json")
 bit_regex = /\d+(\.|,)?(\d+)?/ #any amount
 currency_regex = /#[A-Z]{3}/ # "#" followed by 3 capital letters
 bitcoin_cotation = 0
@@ -82,9 +81,32 @@ puts "[STARTING] bot..."
 
         update_cotations
         this_amount = final_amount(bit_amount, currency)
-        reply = "#{bit_amount} em #{currency} é #{this_amount}"
+        reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
         puts reply
         
+        tweet = {
+            "status" => "@#{status.user.screen_name} " + reply,
+            "in_reply_to_status_id" => status.id.to_s
+            }
+        puts tweet
+        
+		authorization = SimpleOAuth::Header.new(:post, twurl.to_s, tweet, OAUTH)
+        
+        http = EventMachine::HttpRequest.new(twurl.to_s).post({
+            	:head => {"Authorization" => authorization},
+            	:body => tweet
+            })
+        	http.errback {
+                puts "[ERROR] errback"
+            }
+        	http.callback {
+               if http.response_header.status.to_i == 200
+                 puts "[HTTP_OK] #{http.response_header.status}"
+               else
+                 puts "[HTTP_ERROR] #{http.response_header.status}"
+               end
+            }
+
         
 #        #if has_cotation == false || (cotation_timestamp - Time.now) > 10 # if there was elapsed
 #        EventMachine.run {

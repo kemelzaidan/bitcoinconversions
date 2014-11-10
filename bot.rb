@@ -77,24 +77,31 @@ puts "[STARTING] bot..."
                 response = HTTParty.get(BIT_AVERAGE_URL)
                 COTATIONS[:data] = JSON.parse response.body
                 COTATIONS[:timestamp] = Time.now
-                puts "Cotations fetched"
-                #return COTATIONS
+                puts "Cotations fetched: #{COTATIONS}"
             end
 
             def final_amount(amount, currency)
                 puts "Will compute final_amount"
-            	COTATIONS[:data][currency]["averages"]["last"] * amount
+                if COTATIONS[:data][currency]
+	            	COTATIONS[:data][currency]["averages"]["last"] * amount
+                else
+                    -1
+                end
         	end
 
             result = final_amount(bit_amount, currency)
+            result = result.round(2)
             puts "Should return #{result}"
-        	result.round(2)
+        	result
         }
 
             callback = proc { |this_amount|
-                
+                if COTATIONS[:data][currency]
+			        reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
+                else
+                    reply = "Currency #{currency} not found :("
+                 end
         #create the reply tweet
-        reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
         puts reply
         
         tweet = {

@@ -22,6 +22,7 @@ TweetStream.configure do |config|
  config.auth_method = :oauth
 end
 
+# functions
 COTATIONS = {}
 BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/all" #bitcoinaverage.com API endpoint
 
@@ -33,18 +34,22 @@ def update_cotations
   return if cotations_updated?
   
   puts "Will fetch new cotations"
-  fetch_cotations
+  response = HTTParty.get(BIT_AVERAGE_URL)
+  COTATIONS[:data] = JSON.parse response.body
+  COTATIONS[:timestamp] = Time.now
+  puts "Cotations fetched"
+  return COTATIONS
 end
 
 def cotations_updated?
   COTATIONS[:timestamp] && (Time.now - COTATIONS[:timestamp]) < 10
 end
 
-def fetch_cotations
-  response = HTTParty.get(BIT_AVERAGE_URL)
-  COTATIONS[:data] = JSON.parse response.body
-  COTATIONS[:timestamp] = Time.now
-end
+#def fetch_cotations
+#  response = HTTParty.get(BIT_AVERAGE_URL)
+#  COTATIONS[:data] = JSON.parse response.body
+#  COTATIONS[:timestamp] = Time.now
+#end
 
 # variables
 twurl = URI.parse("https://api.twitter.com/1.1/statuses/update.json")
@@ -79,33 +84,44 @@ puts "[STARTING] bot..."
         #p bit_amount
         #p currency
 
-        update_cotations
-        this_amount = final_amount(bit_amount, currency)
-        reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
+        # bloquing cotation update
+       	operation = proc {
+        	update_cotations              
+        }
+
+        callback = proc {
+        	this_amount = final_amount(bit_amount, currency)              
+        }
+				
+        EventMachine.defer(operation, callback)
+        
+        #create the reply tweet
+        @reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
         puts reply
         
+        puts "got out of the defer"
         tweet = {
             "status" => "@#{status.user.screen_name} " + reply,
             "in_reply_to_status_id" => status.id.to_s
             }
         puts tweet
         
-		authorization = SimpleOAuth::Header.new(:post, twurl.to_s, tweet, OAUTH)
+				authorization = SimpleOAuth::Header.new(:post, twurl.to_s, tweet, OAUTH)
         
         http = EventMachine::HttpRequest.new(twurl.to_s).post({
             	:head => {"Authorization" => authorization},
             	:body => tweet
-            })
+        })
         	http.errback {
                 puts "[ERROR] errback"
-            }
+          }
         	http.callback {
                if http.response_header.status.to_i == 200
                  puts "[HTTP_OK] #{http.response_header.status}"
                else
                  puts "[HTTP_ERROR] #{http.response_header.status}"
                end
-            }
+          }
 
         
 #        #if has_cotation == false || (cotation_timestamp - Time.now) > 10 # if there was elapsed

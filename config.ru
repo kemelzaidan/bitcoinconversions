@@ -23,7 +23,7 @@ TweetStream.configure do |config|
 end
 
 # functions
-COTATIONS = {}
+COTATIONS = { count: 0 }
 BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/all" #bitcoinaverage.com API endpoint
 
 #def fetch_cotations
@@ -43,6 +43,10 @@ cotation_timestamp = ""
 # user stream connection
 @client  = TweetStream::Client.new
 
+puts "[STARTING] rack..."
+run lambda { |env| [200, {'Content-Type'=>'text/plain'}, StringIO.new("#{COTATIONS[:count]} conversions so far")] }
+
+Thread.new do
 puts "[STARTING] bot..."
 @client.userstream() do |status|
     puts "[NEW TWEET] #{status.text}"
@@ -121,6 +125,7 @@ puts "[STARTING] bot..."
           }
         	http.callback {
                if http.response_header.status.to_i == 200
+                COTATIONS[:count] += 1
                  puts "[HTTP_OK] #{http.response_header.status}"
                else
                  puts "[HTTP_ERROR] #{http.response_header.status}"
@@ -131,3 +136,5 @@ puts "[STARTING] bot..."
         EventMachine.defer(operation, callback)
     end
 end
+end
+

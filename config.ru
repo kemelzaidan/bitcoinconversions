@@ -127,6 +127,7 @@ puts "[STARTING] bot..."
                if http.response_header.status.to_i == 200
                 COTATIONS[:count] += 1
                  puts "[HTTP_OK] #{http.response_header.status}"
+                 puts "[COTATIONS_COUNT] = #{COTATIONS[:count]}"
                else
                  puts "[HTTP_ERROR] #{http.response_header.status}"
                end

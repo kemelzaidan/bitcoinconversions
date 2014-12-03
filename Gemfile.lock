@@ -1,0 +1,68 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    addressable (2.3.6)
+    buftok (0.2.0)
+    cookiejar (0.3.2)
+    daemons (1.1.9)
+    em-http-request (1.1.2)
+      addressable (>= 2.3.4)
+      cookiejar
+      em-socksify (>= 0.3)
+      eventmachine (>= 1.0.3)
+      http_parser.rb (>= 0.6.0)
+    em-socksify (0.3.0)
+      eventmachine (>= 1.0.0.beta.4)
+    em-twitter (0.3.5)
+      buftok (~> 0.2)
+      eventmachine (~> 1.0)
+      http_parser.rb (~> 0.6)
+      simple_oauth (~> 0.2)
+    equalizer (0.0.9)
+    eventmachine (1.0.3)
+    faraday (0.9.0)
+      multipart-post (>= 1.2, < 3)
+    http (0.6.2)
+      http_parser.rb (~> 0.6.0)
+    http_parser.rb (0.6.0)
+    httparty (0.13.3)
+      json (~> 1.8)
+      multi_xml (>= 0.5.2)
+    json (1.8.1)
+    memoizable (0.4.2)
+      thread_safe (~> 0.3, >= 0.3.1)
+    multi_json (1.10.1)
+    multi_xml (0.5.5)
+    multipart-post (2.0.0)
+    naught (1.0.0)
+    rack (1.5.2)
+    simple_oauth (0.2.0)
+    thread_safe (0.3.4)
+    tweetstream (2.6.1)
+      daemons (~> 1.1)
+      em-http-request (>= 1.1.1)
+      em-twitter (~> 0.3)
+      multi_json (~> 1.3)
+      twitter (~> 5.5)
+    twitter (5.11.0)
+      addressable (~> 2.3)
+      buftok (~> 0.2.0)
+      equalizer (~> 0.0.9)
+      faraday (~> 0.9.0)
+      http (~> 0.6.0)
+      http_parser.rb (~> 0.6.0)
+      json (~> 1.8)
+      memoizable (~> 0.4.0)
+      naught (~> 1.0)
+      simple_oauth (~> 0.2.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  em-http-request
+  httparty
+  json
+  rack
+  simple_oauth (= 0.2.0)
+  tweetstream (= 2.6.1)

@@ -44,7 +44,7 @@ cotation_timestamp = ""
 @client  = TweetStream::Client.new
 
 puts "[STARTING] rack..."
-run lambda { |env| [200, {'Content-Type'=>'text/plain'}, StringIO.new("#{$COTATIONS[:count]} conversions so far")] }
+run lambda { |env| [200, {'Content-Type'=>'text/plain'}, StringIO.new("#{$COTATIONS[:count]} conversions so far, object_id is #{$COTATIONS.object_id}, #{$COTATIONS}, process #{Process.pid}")] }
 
 Thread.new do
 puts "[STARTING] bot..."
@@ -124,10 +124,10 @@ puts "[STARTING] bot..."
                 puts "[ERROR] errback"
           }
         	http.callback {
-               if http.response_header.status.to_i == 200
                 $COTATIONS[:count] += 1
+                puts "[$COTATIONS_COUNT] = #{$COTATIONS[:count]}, object_id=#{$COTATIONS.object_id}, #{$COTATIONS}, process #{Process.pid}"
+               if http.response_header.status.to_i == 200
                  puts "[HTTP_OK] #{http.response_header.status}"
-                 puts "[$COTATIONS_COUNT] = #{$COTATIONS[:count]}"
                else
                  puts "[HTTP_ERROR] #{http.response_header.status}"
                end

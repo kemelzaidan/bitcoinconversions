@@ -23,13 +23,13 @@ TweetStream.configure do |config|
 end
 
 # functions
-COTATIONS = { count: 0 }
+$COTATIONS = { count: 0 }
 BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/all" #bitcoinaverage.com API endpoint
 
 #def fetch_cotations
 #  response = HTTParty.get(BIT_AVERAGE_URL)
-#  COTATIONS[:data] = JSON.parse response.body
-#  COTATIONS[:timestamp] = Time.now
+#  $COTATIONS[:data] = JSON.parse response.body
+#  $COTATIONS[:timestamp] = Time.now
 #end
 
 # variables
@@ -44,7 +44,7 @@ cotation_timestamp = ""
 @client  = TweetStream::Client.new
 
 puts "[STARTING] rack..."
-run lambda { |env| [200, {'Content-Type'=>'text/plain'}, StringIO.new("#{COTATIONS[:count]} conversions so far")] }
+run lambda { |env| [200, {'Content-Type'=>'text/plain'}, StringIO.new("#{$COTATIONS[:count]} conversions so far")] }
 
 Thread.new do
 puts "[STARTING] bot..."
@@ -72,22 +72,22 @@ puts "[STARTING] bot..."
         # bloquing cotation update
        	operation = proc {
         	def cotations_updated?
-              COTATIONS[:timestamp] && (Time.now - COTATIONS[:timestamp]) < 10
+              $COTATIONS[:timestamp] && (Time.now - $COTATIONS[:timestamp]) < 10
             end
           
           
             if !cotations_updated?
                 puts "Will fetch new cotations"
                 response = HTTParty.get(BIT_AVERAGE_URL)
-                COTATIONS[:data] = JSON.parse response.body
-                COTATIONS[:timestamp] = Time.now
-                puts "Cotations fetched: #{COTATIONS}"
+                $COTATIONS[:data] = JSON.parse response.body
+                $COTATIONS[:timestamp] = Time.now
+                puts "Cotations fetched: #{$COTATIONS}"
             end
 
             def final_amount(amount, currency)
                 puts "Will compute final_amount"
-                if COTATIONS[:data][currency]
-	            	COTATIONS[:data][currency]["averages"]["last"] * amount
+                if $COTATIONS[:data][currency]
+	            	$COTATIONS[:data][currency]["averages"]["last"] * amount
                 else
                     -1
                 end
@@ -100,7 +100,7 @@ puts "[STARTING] bot..."
         }
 
             callback = proc { |this_amount|
-                if COTATIONS[:data][currency]
+                if $COTATIONS[:data][currency]
 			        reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
                 else
                     reply = "Currency #{currency} not found :("
@@ -125,9 +125,9 @@ puts "[STARTING] bot..."
           }
         	http.callback {
                if http.response_header.status.to_i == 200
-                COTATIONS[:count] += 1
+                $COTATIONS[:count] += 1
                  puts "[HTTP_OK] #{http.response_header.status}"
-                 puts "[COTATIONS_COUNT] = #{COTATIONS[:count]}"
+                 puts "[$COTATIONS_COUNT] = #{$COTATIONS[:count]}"
                else
                  puts "[HTTP_ERROR] #{http.response_header.status}"
                end

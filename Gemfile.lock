@@ -23,7 +23,7 @@ GEM
     eventmachine (1.0.3)
     faraday (0.9.0)
       multipart-post (>= 1.2, < 3)
-    http (0.6.2)
+    http (0.6.3)
       http_parser.rb (~> 0.6.0)
     http_parser.rb (0.6.0)
     httparty (0.13.3)
@@ -42,6 +42,7 @@ GEM
       rake (>= 0.8.1)
     rack (1.5.2)
     rake (10.4.2)
+    redis (3.1.0)
     simple_oauth (0.2.0)
     thread_safe (0.3.4)
     tweetstream (2.6.1)
@@ -71,5 +72,6 @@ DEPENDENCIES
   json
   passenger
   rack
+  redis
   simple_oauth (= 0.2.0)
   tweetstream (= 2.6.1)

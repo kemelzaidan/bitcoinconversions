@@ -7,13 +7,14 @@ require "httparty"
 require "simple_oauth"
 require "json"
 require "uri"
+require "redis"
 
 # require the file with the API keys
 require "./oauth-keys"
 
 # config oauth
 ACCOUNT_ID = OAUTH[:token].split("-").first.to_i
- 
+
 TweetStream.configure do |config|
  config.consumer_key       = OAUTH[:consumer_key]
  config.consumer_secret    = OAUTH[:consumer_secret]
@@ -23,7 +24,8 @@ TweetStream.configure do |config|
 end
 
 # functions
-$COTATIONS = { count: 0 }
+redis = Redis.new(REDIS)
+redis.set("count", 0)
 BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/all" #bitcoinaverage.com API endpoint
 
 #def fetch_cotations
@@ -44,7 +46,7 @@ cotation_timestamp = ""
 @client  = TweetStream::Client.new
 
 puts "[STARTING] rack..."
-run lambda { |env| [200, {'Content-Type'=>'text/plain'}, StringIO.new("#{$COTATIONS[:count]} conversions so far, object_id is #{$COTATIONS.object_id}, #{$COTATIONS}, process #{Process.pid}")] }
+run lambda { |env| [200, {'Content-Type'=>'text/plain'}, StringIO.new("#{redis.get("count")} conversions so far")] }
 
 Thread.new do
 puts "[STARTING] bot..."
@@ -60,7 +62,7 @@ puts "[STARTING] bot..."
     puts reply_to_me
     puts contains_currency
     puts contains_amount
-    
+
     # check if stream is not a retweet and is valid
     if !retweet && reply_to_me && contains_amount && contains_currency
         puts "[PROCESSING] #{status.text}"
@@ -72,22 +74,23 @@ puts "[STARTING] bot..."
         # bloquing cotation update
        	operation = proc {
         	def cotations_updated?
-              $COTATIONS[:timestamp] && (Time.now - $COTATIONS[:timestamp]) < 10
+              redis.get("timestamp") && (Time.now - redis.get("timestamp")) < 10
             end
-          
-          
+
+
             if !cotations_updated?
                 puts "Will fetch new cotations"
                 response = HTTParty.get(BIT_AVERAGE_URL)
-                $COTATIONS[:data] = JSON.parse response.body
-                $COTATIONS[:timestamp] = Time.now
-                puts "Cotations fetched: #{$COTATIONS}"
+                redis.set("data", response.body)
+                redis.set("timestamp", Time.now)
+                puts "Cotations fetched: #{redis.get("data")}"
             end
 
             def final_amount(amount, currency)
                 puts "Will compute final_amount"
-                if $COTATIONS[:data][currency]
-	            	$COTATIONS[:data][currency]["averages"]["last"] * amount
+                cotations = JSON.parse(redis.get("data"))
+                if cotations[:data][currency]
+	            	cotations[:data][currency]["averages"]["last"] * amount
                 else
                     -1
                 end
@@ -100,22 +103,23 @@ puts "[STARTING] bot..."
         }
 
             callback = proc { |this_amount|
-                if $COTATIONS[:data][currency]
+                cotations = JSON.parse(redis.get("data"))
+                if cotations("data")[currency]
 			        reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
                 else
                     reply = "Currency #{currency} not found :("
                  end
         #create the reply tweet
         puts reply
-        
+
         tweet = {
             "status" => "@#{status.user.screen_name} " + reply,
             "in_reply_to_status_id" => status.id.to_s
             }
         puts tweet
-        
+
 		authorization = SimpleOAuth::Header.new(:post, twurl.to_s, tweet, OAUTH)
-        
+
         http = EventMachine::HttpRequest.new(twurl.to_s).post({
             	:head => {"Authorization" => authorization},
             	:body => tweet
@@ -124,8 +128,8 @@ puts "[STARTING] bot..."
                 puts "[ERROR] errback"
           }
         	http.callback {
-                $COTATIONS[:count] += 1
-                puts "[$COTATIONS_COUNT] = #{$COTATIONS[:count]}, object_id=#{$COTATIONS.object_id}, #{$COTATIONS}, process #{Process.pid}"
+                redis.set("count", redis.get("count") + 1)
+                puts "[count] = #{redis.get("count")}"
                if http.response_header.status.to_i == 200
                  puts "[HTTP_OK] #{http.response_header.status}"
                else
@@ -133,7 +137,7 @@ puts "[STARTING] bot..."
                end
           }
         }
-        
+
         EventMachine.defer(operation, callback)
     end
 end

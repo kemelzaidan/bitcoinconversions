@@ -23,10 +23,9 @@ TweetStream.configure do |config|
  config.auth_method = :oauth
 end
 
-# functions
+# redis setup
 redis = Redis.new(REDIS)
 redis.set("count", 0)
-BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/all" #bitcoinaverage.com API endpoint
 
 #def fetch_cotations
 #  response = HTTParty.get(BIT_AVERAGE_URL)
@@ -34,9 +33,13 @@ BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/all" #bitcoinaverage.com API e
 #  $COTATIONS[:timestamp] = Time.now
 #end
 
+# constants
+BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/all" #bitcoinaverage.com API endpoint
+
 # variables
+
 twurl = URI.parse("https://api.twitter.com/1.1/statuses/update.json")
-bit_regex = /\d+(\.|,)?(\d+)?/ #any amount
+bit_regex = /\d+(\.|,)?(\d+)?/ # any money amount | accepts both . or , as separator
 currency_regex = /#[A-Z]{3}/ # "#" followed by 3 capital letters
 bitcoin_cotation = 0
 has_cotation = false
@@ -72,9 +75,9 @@ puts "[STARTING] bot..."
         p currency
 
         # bloquing cotation update
-       	operation = proc {
-        	def cotations_updated?
-              redis.get("timestamp") && (Time.now - redis.get("timestamp")) < 10
+        operation = proc {
+            def cotations_updated?
+                redis.get("timestamp") && (Time.now - redis.get("timestamp")) < 10
             end
 
 
@@ -90,7 +93,7 @@ puts "[STARTING] bot..."
                 puts "Will compute final_amount"
                 cotations = JSON.parse(redis.get("data"))
                 if cotations[:data][currency]
-	            	cotations[:data][currency]["averages"]["last"] * amount
+                    cotations[:data][currency]["averages"]["last"] * amount
                 else
                     -1
                 end
@@ -105,7 +108,7 @@ puts "[STARTING] bot..."
             callback = proc { |this_amount|
                 cotations = JSON.parse(redis.get("data"))
                 if cotations("data")[currency]
-			        reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
+                    reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
                 else
                     reply = "Currency #{currency} not found :("
                  end
@@ -118,7 +121,7 @@ puts "[STARTING] bot..."
             }
         puts tweet
 
-		authorization = SimpleOAuth::Header.new(:post, twurl.to_s, tweet, OAUTH)
+        authorization = SimpleOAuth::Header.new(:post, twurl.to_s, tweet, OAUTH)
 
         http = EventMachine::HttpRequest.new(twurl.to_s).post({
             	:head => {"Authorization" => authorization},
@@ -130,11 +133,11 @@ puts "[STARTING] bot..."
         	http.callback {
                 redis.set("count", redis.get("count") + 1)
                 puts "[count] = #{redis.get("count")}"
-               if http.response_header.status.to_i == 200
-                 puts "[HTTP_OK] #{http.response_header.status}"
-               else
-                 puts "[HTTP_ERROR] #{http.response_header.status}"
-               end
+                if http.response_header.status.to_i == 200
+                    puts "[HTTP_OK] #{http.response_header.status}"
+                else
+                    puts "[HTTP_ERROR] #{http.response_header.status}"
+                end
           }
         }
 

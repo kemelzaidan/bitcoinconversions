@@ -34,7 +34,7 @@ $redis.set("count", 0)
 #end
 
 # constants
-BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/all" #bitcoinaverage.com API endpoint
+BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/ticker/global/all" #bitcoinaverage.com API endpoint
 
 # variables
 

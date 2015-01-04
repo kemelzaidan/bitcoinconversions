@@ -99,8 +99,8 @@ puts "[STARTING] bot..."
             def final_amount(amount, currency)
                 puts "Will compute final_amount"
                 cotations = JSON.parse($redis.get("data"))
-                if cotations[:data][currency]
-                    cotations[:data][currency]["averages"]["last"] * amount
+                if cotations[currency]
+                    cotations[currency]["last"] * amount
                 else
                     -1
                 end
@@ -114,7 +114,7 @@ puts "[STARTING] bot..."
 
             callback = proc { |this_amount|
                 cotations = JSON.parse($redis.get("data"))
-                if cotations("data")[currency]
+                if cotations[currency]
                     reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
                 else
                     reply = "Currency #{currency} not found :("

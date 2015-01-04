@@ -24,8 +24,8 @@ TweetStream.configure do |config|
 end
 
 # redis setup
-redis = Redis.new(REDIS)
-redis.set("count", 0)
+$redis = Redis.new(REDIS)
+$redis.set("count", 0)
 
 #def fetch_cotations
 #  response = HTTParty.get(BIT_AVERAGE_URL)
@@ -49,7 +49,7 @@ cotation_timestamp = ""
 @client  = TweetStream::Client.new
 
 puts "[STARTING] rack..."
-run lambda { |env| [200, {'Content-Type'=>'text/plain'}, StringIO.new("#{redis.get("count")} conversions so far")] }
+run lambda { |env| [200, {'Content-Type'=>'text/plain'}, StringIO.new("#{$redis.get("count")} conversions so far")] }
 
 Thread.new do
 puts "[STARTING] bot..."
@@ -77,8 +77,8 @@ puts "[STARTING] bot..."
         # bloquing cotation update
         operation = proc {
             def cotations_updated?
-                if redis.exists("timestamp") == 1
-                    (Time.now - redis.get("timestamp")) < 10
+                if $redis.exists("timestamp") == true
+                    (Time.now - $redis.get("timestamp")) < 10
                 else
                     return false
                 end
@@ -90,14 +90,14 @@ puts "[STARTING] bot..."
             else
                 puts "Will fetch new cotations"
                 response = HTTParty.get(BIT_AVERAGE_URL)
-                redis.set("data", response.body)
-                redis.set("timestamp", Time.now)
-                puts "Cotations fetched: #{redis.get("data")}"
+                $redis.set("data", response.body)
+                $redis.set("timestamp", Time.now)
+                puts "Cotations fetched: #{$redis.get("data")}"
             end
 
             def final_amount(amount, currency)
                 puts "Will compute final_amount"
-                cotations = JSON.parse(redis.get("data"))
+                cotations = JSON.parse($redis.get("data"))
                 if cotations[:data][currency]
                     cotations[:data][currency]["averages"]["last"] * amount
                 else
@@ -112,7 +112,7 @@ puts "[STARTING] bot..."
         }
 
             callback = proc { |this_amount|
-                cotations = JSON.parse(redis.get("data"))
+                cotations = JSON.parse($redis.get("data"))
                 if cotations("data")[currency]
                     reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
                 else
@@ -137,8 +137,8 @@ puts "[STARTING] bot..."
                 puts "[ERROR] errback"
           }
         	http.callback {
-                redis.set("count", redis.get("count") + 1)
-                puts "[count] = #{redis.get("count")}"
+                $redis.set("count", $redis.get("count") + 1)
+                puts "[count] = #{$redis.get("count")}"
                 if http.response_header.status.to_i == 200
                     puts "[HTTP_OK] #{http.response_header.status}"
                 else

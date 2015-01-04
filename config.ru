@@ -138,7 +138,7 @@ puts "[STARTING] bot..."
                 puts "[ERROR] errback"
           }
         	http.callback {
-                $redis.set("count", $redis.get("count") + 1)
+                $redis.set("count", $redis.get("count").to_i + 1)
                 puts "[count] = #{$redis.get("count")}"
                 if http.response_header.status.to_i == 200
                     puts "[HTTP_OK] #{http.response_header.status}"

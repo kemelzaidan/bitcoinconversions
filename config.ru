@@ -8,6 +8,7 @@ require "simple_oauth"
 require "json"
 require "uri"
 require "redis"
+require "time"
 
 # require the file with the API keys
 require "./oauth-keys"
@@ -78,7 +79,7 @@ puts "[STARTING] bot..."
         operation = proc {
             def cotations_updated?
                 if $redis.exists("timestamp") == true
-                    (Time.now - $redis.get("timestamp")) < 10
+                    (Time.now - Time.parse($redis.get("timestamp"))) < 10
                 else
                     return false
                 end

@@ -66,7 +66,7 @@ puts "[STARTING] bot..."
     # check if stream is not a retweet and is valid
     if !retweet && reply_to_me && contains_amount && contains_currency
         puts "[PROCESSING] #{status.text}"
-        bit_amount = status.text[bit_regex].to_f # grabs the amount on the tweet
+        bit_amount = status.text[bit_regex].gsub(',', '.').to_f # grabs the amount on the tweet
         currency = status.text[currency_regex][1..-1] # takes the "#" out
         p bit_amount
         p currency

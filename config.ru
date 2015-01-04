@@ -85,7 +85,9 @@ puts "[STARTING] bot..."
             end
 
 
-            unless cotations_updated?
+            if cotations_updated?
+                puts "COTATIONS ARE UPDATED. No need no fetch them"
+            else
                 puts "Will fetch new cotations"
                 response = HTTParty.get(BIT_AVERAGE_URL)
                 redis.set("data", response.body)

@@ -77,11 +77,15 @@ puts "[STARTING] bot..."
         # bloquing cotation update
         operation = proc {
             def cotations_updated?
-                redis.get("timestamp") && (Time.now - redis.get("timestamp")) < 10
+                if redis.exists("timestamp") == 1
+                    (Time.now - redis.get("timestamp")) < 10
+                else
+                    return false
+                end
             end
 
 
-            if !cotations_updated?
+            unless cotations_updated?
                 puts "Will fetch new cotations"
                 response = HTTParty.get(BIT_AVERAGE_URL)
                 redis.set("data", response.body)

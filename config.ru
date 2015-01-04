@@ -38,13 +38,9 @@ $redis.set("count", 0)
 BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/ticker/global/all" #bitcoinaverage.com API endpoint
 
 # variables
-
 twurl = URI.parse("https://api.twitter.com/1.1/statuses/update.json")
 bit_regex = /\d+(\.|,)?(\d+)?/ # any money amount | accepts both . or , as separator
 currency_regex = /#[A-Z]{3}/ # "#" followed by 3 capital letters
-bitcoin_cotation = 0
-has_cotation = false
-cotation_timestamp = ""
 
 # user stream connection
 @client  = TweetStream::Client.new
@@ -57,10 +53,10 @@ puts "[STARTING] bot..."
 @client.userstream() do |status|
     puts "[NEW TWEET] #{status.text}"
 
-    retweet = status.retweet?
-    reply_to_me = status.in_reply_to_user_id == ACCOUNT_ID
-    contains_currency = status.text =~ currency_regex
-    contains_amount = status.text =~ bit_regex
+    retweet = status.retweet? #checks if it's a convertion retweet
+    reply_to_me = status.in_reply_to_user_id == ACCOUNT_ID # checks if tweet mentions the bot
+    contains_currency = status.text =~ currency_regex # checks if tweet has a hashtag with a currency code
+    contains_amount = status.text =~ bit_regex # checks if tweets contains a number in it
 
     puts retweet
     puts reply_to_me
@@ -93,7 +89,8 @@ puts "[STARTING] bot..."
                 response = HTTParty.get(BIT_AVERAGE_URL)
                 $redis.set("data", response.body)
                 $redis.set("timestamp", Time.now)
-                puts "Cotations fetched: #{$redis.get("data")}"
+                # puts "Cotations fetched: #{$redis.get("data")}"
+                puts "Cotations fetched!"
             end
 
             def final_amount(amount, currency)

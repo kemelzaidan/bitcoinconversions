@@ -148,5 +148,5 @@ puts "[STARTING] bot..."
         EventMachine.defer(operation, callback)
     end
 end
-end
+end.join
 

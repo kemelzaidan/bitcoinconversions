@@ -48,7 +48,7 @@ currency_regex = /#[A-Z]{3}/ # "#" followed by 3 capital letters
 puts "[STARTING] rack..."
 run lambda { |env| [200, {'Content-Type'=>'text/plain'}, StringIO.new("#{$redis.get("count")} conversions so far")] }
 
-Thread.new do
+pid = fork do
 puts "[STARTING] bot..."
 @client.userstream() do |status|
     puts "[NEW TWEET] #{status.text}"
@@ -148,5 +148,5 @@ puts "[STARTING] bot..."
         EventMachine.defer(operation, callback)
     end
 end
-end.join
-
+end
+Process.detach(pid)

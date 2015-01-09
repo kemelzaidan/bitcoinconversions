@@ -1,6 +1,8 @@
 BitcoinConversions
 ==================
 
+Se você fala português, leia o [README.pt-br.md](https://github.com/kemelzaidan/bitcoinconversions/blob/master/README.pt-br.md).
+
 Bitcoin Conversions is a twitter bot which replies a twitter mention with a value in bitcoin and a currency, with the actual value in the given fiat currency
 
 ## Usage

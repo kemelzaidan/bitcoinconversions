@@ -26,7 +26,7 @@ end
 
 # redis setup
 $redis = Redis.new(REDIS)
-$redis.set("count", 0)
+$redis.set("count", 0, options = {:nx => true})
 
 #def fetch_cotations
 #  response = HTTParty.get(BIT_AVERAGE_URL)
@@ -115,7 +115,7 @@ puts "[STARTING] bot..."
                     reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
                 else
                     reply = "Currency #{currency} not found :("
-                 end
+                end
         #create the reply tweet
         puts reply
 

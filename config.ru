@@ -40,7 +40,7 @@ BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/ticker/global/all" #bitcoinave
 # variables
 twurl = URI.parse("https://api.twitter.com/1.1/statuses/update.json")
 bit_regex = /\d+(\.|,)?(\d+)?/ # any money amount | accepts both . or , as separator
-currency_regex = /#[A-Z]{3}/ # "#" followed by 3 capital letters
+currency_regex = /#[a-zA-Z]{3}/ # "#" followed by 3 capital letters
 
 # user stream connection
 @client  = TweetStream::Client.new

@@ -110,6 +110,7 @@ puts "[STARTING] bot..."
         }
 
             callback = proc { |this_amount|
+                this_amount = "%.2f" % this_amount # display right number of decimals for currency
                 cotations = JSON.parse($redis.get("data"))
                 if cotations[currency]
                     reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"

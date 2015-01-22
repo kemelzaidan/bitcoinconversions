@@ -1,0 +1,12 @@
+OAUTH = {
+   :consumer_key => "",
+   :consumer_secret => "",
+   :token => "",
+   :token_secret => ""
+}
+
+REDIS = {
+    :host => "REDIS_IP",
+    :port => "6379", # default REDIS port
+    :password => "admin_password"
+}

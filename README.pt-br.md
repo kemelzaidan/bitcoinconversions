@@ -21,6 +21,6 @@ O robô deve responder com a conversão em apenas alguns segundos. Ele usa a API
 Contribuindo
 ===========
 
-O robô é inteiramente escrito em Ruby. Para testá-lo, você só precisa clonar o repositório, instalar as dependências com o bundler e configurar um servidor Redis. Pessoalmente, uso o Docker para a execução de banco de dados de desenvolvimento. Depois disso, você só precisa criar um arquivo oauth-keys.rb no diretório raiz com as chaves de acesso do OAuth e as informações de conexão com o Redis.
+O robô é inteiramente escrito em Ruby. Para testá-lo, você só precisa clonar o repositório, instalar as dependências com o bundler e configurar um servidor Redis. Pessoalmente, uso o Docker para a execução de banco de dados de desenvolvimento. Depois disso, você só precisa criar um arquivo oauth-keys.rb no diretório raiz (há um arquivo oauth-keys.rb.example que você pode seguir) com as chaves de acesso do OAuth e as informações de conexão com o Redis.
 
 Depois de disso, espera-se que tudo funcione bem! :-) Você pode iniciar o servidor com `bundle exec rackup`

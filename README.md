@@ -21,7 +21,7 @@ The bot should reply with the answer in just a few seconds. The bot uses [bitcoi
 
 ## Contributing
 
-The bot is entirely writter in Ruby. To test it, you just need to clone the repository, install the dependencies with bundler and setup a Redis server. Personally, I use [Docker](http://www.docker.com) for running de development database. After that you just need to create a oauth-keys.rb file in the root directory with the oauth keys and Redis access info.
+The bot is entirely writter in Ruby. To test it, you just need to clone the repository, install the dependencies with bundler and setup a Redis server. Personally, I use [Docker](http://www.docker.com) for running de development database. After that you just need to create an oauth-keys.rb file in the root directory (there is a oauth-keys.rb.example you can follow) with the oauth keys and Redis access info.
 
 After all of it, everything will hopefully work well! :-)
 You can start the server with `bundle exec rackup`

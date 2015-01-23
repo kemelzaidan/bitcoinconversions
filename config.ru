@@ -40,7 +40,7 @@ BIT_AVERAGE_URL = "https://api.bitcoinaverage.com/ticker/global/all" #bitcoinave
 # variables
 twurl = URI.parse("https://api.twitter.com/1.1/statuses/update.json")
 bit_regex = /\d+(\.|,)?(\d+)?/ # any money amount | accepts both . or , as separator
-currency_regex = /#[A-Z]{3}/ # "#" followed by 3 capital letters
+currency_regex = /#[a-zA-Z]{3}/ # "#" followed by 3 letters
 
 # user stream connection
 @client  = TweetStream::Client.new
@@ -110,7 +110,7 @@ puts "[STARTING] bot..."
         }
 
             callback = proc { |this_amount|
-                this_amount = "%.2f" % this_amount # display right number of decimals for currency
+                this_amount = ("%.2f" % this_amount).gsub(/(\d)(?=\d{3}+\.)/, '\1,') # display right number of decimals for currency
                 cotations = JSON.parse($redis.get("data"))
                 if cotations[currency]
                     reply = "#{bit_amount} bitcoins in #{currency} is #{this_amount}"
